@@ -34,7 +34,10 @@ import java.util.List;
  */
 public class MoviePosterFragment extends Fragment {
 
-    private ImageAdapter mMoviePosterAdapter;
+    private static final String KEY_MOVIE_LIST = "movies";
+    private ImageAdapter mMoviePosterAdapter;   // the grid adapter
+    private ArrayList<Movie> mMovies;  // the movie list
+
 
     public MoviePosterFragment() {
     }
@@ -49,6 +52,12 @@ public class MoviePosterFragment extends Fragment {
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.movieinfofragment, menu);
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        outState.putParcelableArrayList(KEY_MOVIE_LIST, mMovies);
+        super.onSaveInstanceState(outState);
     }
 
     @Override
@@ -69,9 +78,16 @@ public class MoviePosterFragment extends Fragment {
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
 
+
+        if (savedInstanceState != null) {
+            mMovies = savedInstanceState.getParcelableArrayList(KEY_MOVIE_LIST);
+        } else {
+            mMovies = new ArrayList<Movie>();
+        }
+
         mMoviePosterAdapter = new ImageAdapter(
                 getActivity(),
-                new ArrayList<String>());
+                mMovies);
 
 
         // Get a reference to the GridView, and attach the adapter to it.
@@ -81,18 +97,17 @@ public class MoviePosterFragment extends Fragment {
         gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                // Dummy Data - Please remove from final version
-                String movieTitle = mMoviePosterAdapter.getItem("original_title", position);
-                String moviePoster = mMoviePosterAdapter.getItem("poster_path", position);
-                String movieSynopsis = mMoviePosterAdapter.getItem("overview", position);
-                // String userRating = "8.1/11";
-                String userRating =
-                        String.valueOf(mMoviePosterAdapter.getItem("vote_average", position));
-                String releaseDate = mMoviePosterAdapter.getItem("release_date", position);
-               // Toast.makeText(getActivity(), movieInfo, Toast.LENGTH_SHORT).show();
+
+                String movieTitle = mMoviePosterAdapter.getItem(position).getTitle();
+                String moviePosterPath = mMoviePosterAdapter.getItem(position).getPosterPath();
+                String movieSynopsis = mMoviePosterAdapter.getItem(position).getSynopsis();
+                String userRating = mMoviePosterAdapter.getItem(position).getUserRating();
+                String releaseDate = mMoviePosterAdapter.getItem(position).getReleaseDate();
+
+                // Toast.makeText(getActivity(), moviePosterPath, Toast.LENGTH_SHORT).show();
                 Intent intent = new Intent(getActivity(), MovieDetailActivity.class)
                         .putExtra("MOVIE_TITLE", movieTitle)
-                        .putExtra("MOVIE_POSTER", moviePoster)
+                        .putExtra("MOVIE_POSTER", moviePosterPath)
                         .putExtra("MOVIE_PLOT_SYNOPSIS", movieSynopsis)
                         .putExtra("MOVIE_USER_RATING", userRating)
                         .putExtra("MOVIE_RELEASE_DATE", releaseDate);
@@ -121,37 +136,33 @@ public class MoviePosterFragment extends Fragment {
         updateMovieInfo();
     }
 
-    public class FetchMovieInfoTask extends AsyncTask<String, Void, String[]> {
+    public class FetchMovieInfoTask extends AsyncTask<String, Void, Movie[]> {
 
         private final String LOG_TAG = FetchMovieInfoTask.class.getSimpleName();
 
-        private String[] getMovieInfoDataFromJson(String movieJsonStr)
+        private Movie[] getMovieInfoDataFromJson(String movieJsonStr)
                 throws JSONException {
             // These are the names of the JSON objects that need to be extracted.
             final String MOVIEDB_RESULTS = "results";
-            final String MOVIEDB_POSTER_PATH = "poster_path";
 
             JSONObject movieJson = new JSONObject(movieJsonStr);
-            JSONArray movieArray = movieJson.getJSONArray(MOVIEDB_RESULTS);
+            JSONArray jsonMovieArray = movieJson.getJSONArray(MOVIEDB_RESULTS);
 
-            String[] resultStrs = new String[movieArray.length()];
-            // this is for debugging only
-            // String[] resultStrs = new String[30];
+            Movie[] movieArray = new Movie[jsonMovieArray.length()];
 
-            for (int i = 0; i < movieArray.length(); i++) {
-                JSONObject movieData = movieArray.getJSONObject(i);
-                String movieDataString = movieData.toString();
-                resultStrs[i] = movieDataString;
+            for (int i = 0; i < jsonMovieArray.length(); i++) {
+                JSONObject jsonMovieObject = jsonMovieArray.getJSONObject(i);
+                Movie movie = new Movie(jsonMovieObject);
+                movieArray[i] = movie;
             }
-            // This is for debugging only.
-            for (String s : resultStrs) {
-                Log.v(LOG_TAG, "Movie entry: " + s);
+            for (int i = 0; i < movieArray.length; i++) {
+                Log.v(LOG_TAG, "Movie entry: " + movieArray[i].getTitle());
             }
-            return resultStrs;
+            return movieArray;
         }
 
         @Override
-        protected String[] doInBackground(String... params) {
+        protected Movie[] doInBackground(String... params) {
             // These two need to be declared outside the try/catch
             // so that they can be closed in the finally block.
             HttpURLConnection urlConnection = null;
@@ -173,7 +184,6 @@ public class MoviePosterFragment extends Fragment {
                 final String SORT_BY_PARAM = "sort_by";
                 final String API_KEY_PARAM = "api_key";
 
-                // Note: Do Not checkin in any code that has this key in it.
                 Uri builtUri = Uri.parse(MOVIES_BASE_URL).buildUpon()
                         .appendQueryParameter(SORT_BY_PARAM, params[0])
                         .appendQueryParameter(API_KEY_PARAM, api_key)
@@ -243,10 +253,10 @@ public class MoviePosterFragment extends Fragment {
         }
 
         @Override
-        protected void onPostExecute(String[] result) {
+        protected void onPostExecute(Movie[] result) {
             if (result != null) {
                 mMoviePosterAdapter.clear();
-                List<String> resultList = new ArrayList<String>(
+                List<Movie> resultList = new ArrayList<Movie>(
                         Arrays.asList(result)
                 );
                 mMoviePosterAdapter.addAll(resultList);

@@ -9,9 +9,6 @@ import android.widget.ImageView;
 
 import com.squareup.picasso.Picasso;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.util.Collection;
 import java.util.List;
 
@@ -21,17 +18,18 @@ import java.util.List;
 
 public class ImageAdapter extends BaseAdapter {
     private Context mContext;
-    private List<String> mObjects;
+    private List<Movie> mObjects;
 
-    public ImageAdapter(Context c, List<String> objects) {
+    public ImageAdapter(Context c, List<Movie> objects) {
         mContext = c;
         mObjects = objects;
     }
 
-    public String getItem(int position) {
+    public Movie getItem(int position) {
         return mObjects.get(position);
     }
 
+    /*
     public String getItem(String key, int position) {
         String value = "";
         try {
@@ -43,6 +41,7 @@ public class ImageAdapter extends BaseAdapter {
         }
         return value;
     }
+    */
 
     public int getCount() {
       //  return mThumbIds.length;
@@ -68,10 +67,11 @@ public class ImageAdapter extends BaseAdapter {
 
         // imageView.setImageResource(mThumbIds[position]);
         // imageView.setImageResource(mObjects.get(position));
-        String posterPath = "http://image.tmdb.org/t/p/w185" + getItem("poster_path",position);
+        // String posterPath = "http://image.tmdb.org/t/p/w185" + getItem("poster_path",position);
+        String posterPath = "http://image.tmdb.org/t/p/w185" + getItem(position).getPosterPath();
         Picasso.with(mContext)
-                .load(posterPath)
-                        //   .load("http://image.tmdb.org/t/p/w185/kqjL17yufvn9OVLyXYpvtyrFfak.jpg")
+                 .load(posterPath)
+                 // .load("http://image.tmdb.org/t/p/w185/kqjL17yufvn9OVLyXYpvtyrFfak.jpg")
                 .placeholder(R.drawable.sample_0)
                 .resize(100,185)
                 .centerCrop()
@@ -91,7 +91,7 @@ public class ImageAdapter extends BaseAdapter {
         return imageView;
     }
 
-    public void add(String object) {
+    public void add(Movie object) {
         if (mObjects != null) {
             mObjects.add(object);
         }
@@ -100,7 +100,7 @@ public class ImageAdapter extends BaseAdapter {
     }
     // To Do: Add an addAll() method.  This will reduce the number of calls
     // to notifyDataSetChanged
-    public void addAll(Collection<? extends String> collection) {
+    public void addAll(Collection<? extends Movie> collection) {
         if (mObjects != null) {
             mObjects.addAll(collection);
         }
