@@ -83,6 +83,7 @@ public class MoviePosterFragment extends Fragment {
             mMovies = savedInstanceState.getParcelableArrayList(KEY_MOVIE_LIST);
         } else {
             mMovies = new ArrayList<Movie>();
+            updateMovieInfo();
         }
 
         mMoviePosterAdapter = new ImageAdapter(
