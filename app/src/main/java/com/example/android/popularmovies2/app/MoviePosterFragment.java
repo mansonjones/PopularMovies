@@ -66,8 +66,12 @@ public class MoviePosterFragment extends Fragment {
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.cml
         int id = item.getItemId();
-        if (id == R.id.action_refresh) {
-            updateMovieInfo();
+        if (id == R.id.action_sort_popular) {
+            updateMovieInfo("popularity.desc");
+        } else if(id == R.id.action_sort_ratings) {
+            updateMovieInfo("vote_average.desc");
+        } else if (id == R.id.action_refresh) {
+            updateMovieInfo("popularity.desc");
             return true;
         }
         return super.onOptionsItemSelected(item);
@@ -83,7 +87,7 @@ public class MoviePosterFragment extends Fragment {
             mMovies = savedInstanceState.getParcelableArrayList(KEY_MOVIE_LIST);
         } else {
             mMovies = new ArrayList<Movie>();
-            updateMovieInfo();
+            updateMovieInfo("popularity.desc");
         }
 
         mMoviePosterAdapter = new ImageAdapter(
@@ -121,20 +125,20 @@ public class MoviePosterFragment extends Fragment {
 
     }
 
-    private void updateMovieInfo() {
+    private void updateMovieInfo(String sortOrder) {
         FetchMovieInfoTask movieInfoTask = new FetchMovieInfoTask();
         /*
         String location = PreferenceManager.getDefaultSharedPreferences(getActivity())
                 .getString(getString(R.string.pref_location_default));
         */
-        movieInfoTask.execute("popularity.desc");
+        movieInfoTask.execute(sortOrder);
 
     }
 
     @Override
     public void onStart() {
         super.onStart();
-        updateMovieInfo();
+        updateMovieInfo("popularity.desc");
     }
 
     public class FetchMovieInfoTask extends AsyncTask<String, Void, Movie[]> {
