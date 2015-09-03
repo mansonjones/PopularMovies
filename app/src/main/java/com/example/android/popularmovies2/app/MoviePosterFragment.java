@@ -180,6 +180,7 @@ public class MoviePosterFragment extends Fragment {
             // Do not check in this key.  To Do: put this key in a separate file
             String api_key = "PUT_YOUR_KEY_HERE";
 
+
             try {
                 // Construct the URL for the OpenWeatherMap query
                 // Possible parameters are available at OWM's forecast API page, at
